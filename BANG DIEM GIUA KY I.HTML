@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm điểm học sinh</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 10px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        .search-box {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 16px;
+            width: 300px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .not-found {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tìm kiếm điểm học sinh</h1>
+    
+    <div class="search-box">
+        <label for="search">Nhập tên học sinh: </label>
+        <input type="text" id="search" placeholder="Ví dụ: Nguyễn Văn A">
+        <button onclick="searchStudent()">Tìm kiếm</button>
+    </div>
+
+    <div id="message" class="not-found"></div>
+
+    <table id="results" style="display: none;">
+        <thead>
+            <tr>
+                <th>Tên học sinh</th>
+                <th>Điểm</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Kết quả tìm kiếm sẽ được hiển thị ở đây -->
+        </tbody>
+    </table>
+
+    <script>
+        // Dữ liệu học sinh và điểm
+        const students = [
+            { name: "Đinh Quỳnh Anh", scores: { Toán: 7, LS_DL: 5, KHTN: 8, TinHoc: 7.3, NguVan: 6.8, NgoaiNgu: 7.6, GDCD: 8, CongNghe: 5.5 }},
+            { name: "Đinh Thiên Ân", scores: { Toán: 6, LS_DL: 4, KHTN: 5.8, TinHoc: 6.3, NguVan: 7.3, NgoaiNgu: 6.6, GDCD: 7, CongNghe: 5 }},
+            { name: "Cao Gia Bảo", scores: { Toán: 6, LS_DL: 3.8, KHTN: 5.8, TinHoc: 3.5, NguVan: 3.8, NgoaiNgu: 3.6, GDCD: 5, CongNghe: 4 }},
+            { name: "Trần Thị Thảo Chi", scores: { Toán: 8.5, LS_DL: 7.5, KHTN: 5, TinHoc: 8.3, NguVan: 7.8, NgoaiNgu: 6, GDCD: 7.3, CongNghe: 7 }},
+            { name: "Nguyễn Thị Mai Dung", scores: { Toán: 6.5, LS_DL: 3.8, KHTN: 5.3, TinHoc: 5, NguVan: 7.3, NgoaiNgu: 3.8, GDCD: 7, CongNghe: 4.5 }},
+            { name: "Cao Tiến Dũng", scores: { Toán: 5, LS_DL: 2.3, KHTN: 4.8, TinHoc: 4, NguVan: 3.5, NgoaiNgu: 2.6, GDCD: 3.3, CongNghe: 4 }},
+            { name: "Nguyễn Thế Dũng", scores: { Toán: 2, LS_DL: 1.3, KHTN: 2.8, TinHoc: 6.8, NguVan: 1.8, NgoaiNgu: 2.8, GDCD: 4.5, CongNghe: 3.5 }},
+            { name: "Cao Linh Đan", scores: { Toán: 8, LS_DL: 4.5, KHTN: 4.3, TinHoc: 8.5, NguVan: 8, NgoaiNgu: 8.5, GDCD: 8, CongNghe: 5 }},
+            { name: "Nguyễn Phi Hải", scores: { Toán: 6.8, LS_DL: 3.3, KHTN: 3.3, TinHoc: 4.5, NguVan: 5, NgoaiNgu: 3.6, GDCD: 2.5, CongNghe: 3.5 }},
+            { name: "Nguyễn Thị Ngọc Hiền", scores: { Toán: 8.5, LS_DL: 5.8, KHTN: 5, TinHoc: 6.3, NguVan: 6.8, NgoaiNgu: 7.1, GDCD: 7.5, CongNghe: 4.5 }},
+            { name: "Đinh Trung Hiệu", scores: { Toán: 4, LS_DL: 2.3, KHTN: 2.8, TinHoc: 5, NguVan: 1, NgoaiNgu: 2.3, GDCD: 3, CongNghe: 3.5 }},
+            { name: "Bùi Thanh Hùng", scores: { Toán: 5, LS_DL: 3.3, KHTN: 3, TinHoc: 4.5, NguVan: 4.5, NgoaiNgu: 4.9, GDCD: 5.5, CongNghe: 5 }},
+            { name: "Đinh Nhật Huy", scores: { Toán: 5, LS_DL: 3.5, KHTN: 3, TinHoc: 5.3, NguVan: 3.5, NgoaiNgu: 3.6, GDCD: 7, CongNghe: 4 }},
+            { name: "Cao Anh Khôi", scores: { Toán: 5, LS_DL: 2, KHTN: 2.8, TinHoc: 6.8, NguVan: 4.3, NgoaiNgu: 4.6, GDCD: 6.3, CongNghe: 4.5 }},
+            { name: "Nguyễn Trung Kiên", scores: { Toán: 4.5, LS_DL: 3.3, KHTN: 2.8, TinHoc: 4.5, NguVan: 4.3, NgoaiNgu: 4, GDCD: 6, CongNghe: 5 }},
+            { name: "Lê Ngọc Minh", scores: { Toán: 6, LS_DL: 6.3, KHTN: 4, TinHoc: 6.5, NguVan: 5, NgoaiNgu: 5, GDCD: 8, CongNghe: 4.5 }},
+            { name: "Nguyễn Thị Kim Ngân", scores: { Toán: 6.5, LS_DL: 4.3, KHTN: 5.3, TinHoc: 6.3, NguVan: 5.5, NgoaiNgu: 5.6, GDCD: 8, CongNghe: 5.5 }},
+            { name: "Trần Phúc Nguyên", scores: { Toán: 7.5, LS_DL: 6.8, KHTN: 6, TinHoc: 7, NguVan: 7.5, NgoaiNgu: 6.4, GDCD: 7.5, CongNghe: 4.5 }},
+            { name: "Trương Khôi Nguyên", scores: { Toán: 6, LS_DL: 4.3, KHTN: 5, TinHoc: 5.3, NguVan: 5, NgoaiNgu: 4.8, GDCD: 5, CongNghe: 4.5 }},
+            { name: "Nguyễn Ngọc Như Nguyệt", scores: { Toán: 7, LS_DL: 4.5, KHTN: 4.5, TinHoc: 5, NguVan: 6.3, NgoaiNgu: 6.3, GDCD: 6.5, CongNghe: 5 }},
+ 	    { name: "Trương Tâm Như", scores: { Toán: 7, LS_DL: 5.3, KHTN: 7, TinHoc: 5.8, NguVan: 6.8, NgoaiNgu: 5.8, GDCD: 7, CongNghe: 5.5 }},
+            { name: "Lê Quang Hoàng Quân", scores: { Toán: 6, LS_DL: 6, KHTN: 4, TinHoc: 5.8, NguVan: 3.3, NgoaiNgu: 3.8, GDCD: 3, CongNghe: 3.5 }},
+            { name: "Ứng Xuân Hải San", scores: { Toán: 6.5, LS_DL: 4.3, KHTN: 5.8, TinHoc: 4.3, NguVan: 7.3, NgoaiNgu: 4.8, GDCD: 6.3, CongNghe: 4.5 }},
+            { name: "Đinh Văn Thìn", scores: { Toán: 2.5, LS_DL: 3, KHTN: 4.5, TinHoc: 4.8, NguVan: 2.5, NgoaiNgu: 4.2, GDCD: 4.5, CongNghe: 3.5 }},
+            { name: "Đinh Thị Mai Thùy", scores: { Toán: 7.5, LS_DL: 5.8, KHTN: 6.3, TinHoc: 6.8, NguVan: 6, NgoaiNgu: 6.3, GDCD: 5.5, CongNghe: 5.5 }},
+            { name: "Đinh Dương Bảo Trang", scores: { Toán: 5.3, LS_DL: 4.8, KHTN: 6.5, TinHoc: 4.8, NguVan: 5.3, NgoaiNgu: 6.3, GDCD: 5.8, CongNghe: 5 }},
+            { name: "Phan Thanh Trúc", scores: { Toán: 8.5, LS_DL: 8.8, KHTN: 9.5, TinHoc: 7.3, NguVan: 8.5, NgoaiNgu: 8.5, GDCD: 8, CongNghe: 7 }},
+            { name: "Cao Nguyễn Lâm Tú", scores: { Toán: 7.3, LS_DL: 4.5, KHTN: 4.3, TinHoc: 6.3, NguVan: 5, NgoaiNgu: 3, GDCD: 6.3, CongNghe: 4.5 }},
+            { name: "Nguyễn Thị Nhã Uyên", scores: { Toán: 7, LS_DL: 5.5, KHTN: 7, TinHoc: 6.8, NguVan: 7.5, NgoaiNgu: 8.3, GDCD: 7.8, CongNghe: 4 }},
+            { name: "Đinh Phương Vy", scores: { Toán: 6, LS_DL: 8.3, KHTN: 8, TinHoc: 5.5, NguVan: 9, NgoaiNgu: 7.8, GDCD: 8.3, CongNghe: 6.5 }},
+            { name: "Nguyễn Tường Vy", scores: { Toán: 6, LS_DL: 4, KHTN: 3.5, TinHoc: 5.5, NguVan: 4.8, NgoaiNgu: 5.7, GDCD: 4.8, CongNghe: 4 }}
+
+        ];
+
+        function searchStudent() {
+            const searchTerm = document.getElementById("search").value.toLowerCase();
+            const resultsTable = document.getElementById("results");
+            const message = document.getElementById("message");
+            const tbody = resultsTable.getElementsByTagName("tbody")[0];
+            
+            // Xóa kết quả cũ
+            tbody.innerHTML = "";
+            message.textContent = "";
+
+            // Lọc danh sách học sinh theo tên
+            const filteredStudents = students.filter(student => student.name.toLowerCase().includes(searchTerm));
+
+            if (filteredStudents.length > 0) {
+                resultsTable.style.display = "table";
+                filteredStudents.forEach(student => {
+                    const row = tbody.insertRow();
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    cell1.textContent = student.name;
+
+                    // Hiển thị điểm theo từng môn
+                    const scores = Object.entries(student.scores).map(([subject, score]) => `${subject}: ${score}`).join(", ");
+                    cell2.textContent = scores;
+                });
+            } else {
+                resultsTable.style.display = "none";
+                message.textContent = "Không tìm thấy học sinh với tên này.";
+            }
+        }
+    </script>
+</body>
+</html>
